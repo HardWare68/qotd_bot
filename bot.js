@@ -5,6 +5,24 @@ const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 
+//localStorage for the database, baby
+if (typeof localStorage === "undefined" || localStorage === null) {
+	var LocalStorage = require('node-localstorage').LocalStorage;
+	localStorage = new LocalStorage('./scratch');
+  }
+
+//this sends a QOTD. Yippie!
+function sendQotd(channelID){
+	const channel = client.channels.cache.get(channelID);
+	channel.send('Question of the Day! \n aaaaaaaaaaaaaaaaa');
+
+}
+
+//God forbid we have a built in sleep function.
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -53,8 +71,25 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // When the client is ready, run this code (only once)
 // We use 'c' for the event parameter to keep it separate from the already defined 'client'
-client.once(Events.ClientReady, c => {
+client.once(Events.ClientReady, async(c) => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
+
+	//send the first QOTD on start up. Yay, I love QOTDs!
+	sendQotd('1106017962932056196');
+
+	//Calculate the next time to send QOTDs
+	localStorage.setItem("nextDate", Date.now() + 5000);
+
+	//uhh...bazinga?
+	while(true){
+		if(localStorage.getItem("nextDate") <= Date.now()){
+			setTimeout(sendQotd, 1, '1106017962932056196');
+
+			localStorage.setItem("nextDate", Date.now() + 5000);
+		}
+		await sleep(5000);
+	}
+
 });
 
 // Log in to Discord with your client's token
